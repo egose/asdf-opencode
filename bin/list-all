@@ -17,8 +17,8 @@ sort_versions() {
 
 all_tags=""
 
-# Loop through pages 1 to 5 (500 items total)
-for page in {1..5}; do
+# Loop through pages 1 to 3 (300 items total)
+for page in {1..3}; do
   # Construct the full URL with page params
   current_url="${releases_url}?per_page=100&page=${page}"
 
