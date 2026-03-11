@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+# Update these for your new tool
+tool_name="opencode"
+github_coordinates="anomalyco/${tool_name}"
+base_download_url="https://github.com/${github_coordinates}/releases/download"
+
+version="$ASDF_INSTALL_VERSION"
+download_path="$ASDF_DOWNLOAD_PATH"
+
+# 1. Platform Mapping (This tool uses 'darwin' for macOS)
+platform=$(uname | tr '[:upper:]' '[:lower:]')
+[ "$platform" == "darwin" ] || platform="linux"
+
+# 2. Architecture Mapping
+arch=$(uname -m | tr '[:upper:]' '[:lower:]')
+case "$arch" in
+x86_64 | amd64 | x64)
+  arch="x64"
+  ;;
+aarch64 | arm64)
+  arch="arm64"
+  ;;
+*)
+  echo "Unsupported architecture: $arch"
+  exit 1
+  ;;
+esac
+
+# 3. Extension Mapping (macOS uses .zip, Linux uses .tar.gz based on your list)
+if [ "$platform" == "darwin" ]; then
+  ext="zip"
+else
+  ext="tar.gz"
+fi
+
+# The primary filename format found in your release list
+# Example: opencode-linux-arm64.tar.gz or opencode-darwin-x64.zip
+filename="${tool_name}-${platform}-${arch}.${ext}"
+
+mkdir -p "$download_path"
+download_url="${base_download_url}/v${version}/${filename}"
+outfile="${download_path}/${filename}"
+
+echo "Attempting to download: $download_url"
+
+if curl -L --fail --connect-timeout 10 --retry 3 "${download_url}" -o "${outfile}"; then
+  echo "Download successful."
+  exit 0
+else
+  echo "Error: Failed to download ${filename} for v${version}."
+  exit 1
+fi
